@@ -1,0 +1,2057 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Panel | Procurement System - FIXED VERSION</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- SheetJS Library untuk Export Excel -->
+  <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+    
+    * { 
+      font-family: 'Inter', sans-serif;
+      scroll-behavior: smooth;
+    }
+    
+    @keyframes slideDown { 
+      from { opacity: 0; transform: translateY(-20px); } 
+      to { opacity: 1; transform: translateY(0); } 
+    }
+    @keyframes fadeIn { 
+      from { opacity: 0; } 
+      to { opacity: 1; } 
+    }
+    @keyframes fadeOut { 
+      from { opacity: 1; } 
+      to { opacity: 0; } 
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.7; }
+    }
+    
+    .animate-slideDown { animation: slideDown 0.6s ease-out; }
+    .animate-fadeIn { animation: fadeIn 0.5s ease-out; }
+    .animate-pulse-loading { animation: pulse 1.5s ease-in-out infinite; }
+    
+    .admin-gradient {
+      background: linear-gradient(135deg, #1e40af 0%, #3b82f6 50%, #60a5fa 100%);
+    }
+    
+    .gradient-mesh {
+      background: 
+        radial-gradient(at 10% 20%, rgba(30, 64, 175, 0.1) 0%, transparent 50%),
+        radial-gradient(at 90% 80%, rgba(59, 130, 246, 0.08) 0%, transparent 50%),
+        linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    }
+    
+    .card-premium {
+      background: white;
+      box-shadow: 
+        0 0 0 1px rgba(30, 64, 175, 0.08),
+        0 10px 40px rgba(30, 64, 175, 0.06),
+        0 20px 60px rgba(0, 0, 0, 0.04);
+      border-radius: 1.25rem;
+      transition: all 0.3s ease;
+    }
+    
+    .table-container {
+      overflow-x: auto;
+      border-radius: 1rem;
+      scrollbar-width: thin;
+      scrollbar-color: #3b82f6 #e5e7eb;
+    }
+    
+    .table-container::-webkit-scrollbar {
+      height: 10px;
+    }
+    
+    .table-container::-webkit-scrollbar-track {
+      background: #f1f5f9;
+      border-radius: 10px;
+    }
+    
+    .table-container::-webkit-scrollbar-thumb {
+      background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
+      border-radius: 10px;
+    }
+    
+    .table-container::-webkit-scrollbar-thumb:hover {
+      background: linear-gradient(135deg, #2563eb 0%, #1e3a8a 100%);
+    }
+    
+    .row-approved { background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%); }
+    .row-rejected { background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%); }
+    .row-pending { background: white; }
+    
+    input:focus, select:focus {
+      outline: none;
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+    }
+    
+    button {
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    button:hover:not(:disabled) {
+      transform: translateY(-2px);
+    }
+    
+    button:active {
+      transform: translateY(0);
+    }
+    
+    .pagination-btn {
+      transition: all 0.2s ease;
+    }
+    
+    .pagination-btn:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 25px rgba(59, 130, 246, 0.3);
+    }
+    
+    .pagination-btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+    
+    .pagination-btn.active {
+      background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
+      color: white;
+      font-weight: 800;
+      box-shadow: 0 8px 20px rgba(59, 130, 246, 0.4);
+    }
+    
+    .filter-badge {
+      transition: all 0.2s ease;
+    }
+    
+    .filter-badge:hover {
+      transform: scale(1.05);
+    }
+    
+    .loading-skeleton {
+      background: linear-gradient(90deg, #f1f5f9 0%, #e2e8f0 50%, #f1f5f9 100%);
+      background-size: 200% 100%;
+      animation: loading 1.5s infinite;
+    }
+    
+    @keyframes loading {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+    
+    .status-indicator {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      display: inline-block;
+      margin-right: 6px;
+    }
+    
+    .status-indicator.pending { background: #f59e0b; box-shadow: 0 0 10px rgba(245, 158, 11, 0.5); }
+    .status-indicator.approved { background: #10b981; box-shadow: 0 0 10px rgba(16, 185, 129, 0.5); }
+    .status-indicator.rejected { background: #ef4444; box-shadow: 0 0 10px rgba(239, 68, 68, 0.5); }
+
+    .ticket-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.5rem 0.9rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 800;
+      letter-spacing: 0.02em;
+      white-space: nowrap;
+      box-shadow: 0 6px 18px rgba(15, 23, 42, 0.08);
+    }
+
+    .ticket-badge.pending {
+      background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+      color: white;
+    }
+
+    .ticket-badge.open {
+      background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+      color: white;
+    }
+
+    .ticket-badge.close {
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      color: white;
+    }
+
+    .info-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+      min-width: 200px;
+    }
+
+    .info-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      width: fit-content;
+      padding: 0.35rem 0.7rem;
+      border-radius: 9999px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      line-height: 1.2;
+      background: #eff6ff;
+      color: #1d4ed8;
+    }
+
+    .info-chip.muted {
+      background: #f3f4f6;
+      color: #6b7280;
+    }
+
+    .meta-text {
+      font-size: 0.72rem;
+      color: #6b7280;
+      font-weight: 600;
+      line-height: 1.4;
+    }
+
+    .tab-button {
+      transition: all 0.3s ease;
+      position: relative;
+      background: linear-gradient(135deg, #1e40af 0%, #2563eb 100%);
+      color: white;
+      border: 2px solid transparent;
+    }
+    
+    .tab-button:hover {
+      background: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(30, 64, 175, 0.3);
+    }
+    
+    .tab-button.active {
+      background: white;
+      color: #1e40af;
+      font-weight: 800;
+      box-shadow: 0 8px 25px rgba(30, 64, 175, 0.2);
+      border: 2px solid #3b82f6;
+    }
+    
+    .tab-button.active::after {
+      content: '';
+      position: absolute;
+      bottom: -2px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 80%;
+      height: 4px;
+      background: linear-gradient(90deg, #3b82f6 0%, #1e40af 100%);
+      border-radius: 10px;
+    }
+    
+    .tab-content {
+      display: none;
+    }
+    
+    .tab-content.active {
+      display: block;
+      animation: fadeIn 0.5s ease-out;
+    }
+
+    .top10-card {
+      background: white;
+      border-radius: 1.25rem;
+      box-shadow: 
+        0 0 0 1px rgba(30, 64, 175, 0.08),
+        0 10px 40px rgba(30, 64, 175, 0.06),
+        0 20px 60px rgba(0, 0, 0, 0.04);
+      transition: all 0.3s ease;
+    }
+    
+    .top10-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 
+        0 0 0 1px rgba(30, 64, 175, 0.12),
+        0 20px 60px rgba(30, 64, 175, 0.1),
+        0 30px 80px rgba(0, 0, 0, 0.08);
+    }
+
+    .summary-card {
+      background: white;
+      border-radius: 1.25rem;
+      box-shadow: 
+        0 0 0 1px rgba(30, 64, 175, 0.08),
+        0 10px 40px rgba(30, 64, 175, 0.06),
+        0 20px 60px rgba(0, 0, 0, 0.04);
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .summary-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 
+        0 0 0 1px rgba(30, 64, 175, 0.12),
+        0 20px 60px rgba(30, 64, 175, 0.1),
+        0 30px 80px rgba(0, 0, 0, 0.08);
+    }
+
+    .summary-card::after {
+      content: '';
+      position: absolute;
+      inset: auto 0 0 0;
+      height: 4px;
+      background: var(--summary-accent, linear-gradient(90deg, #3b82f6 0%, #1d4ed8 100%));
+    }
+
+    .summary-icon {
+      width: 3rem;
+      height: 3rem;
+      border-radius: 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      box-shadow: 0 10px 24px rgba(15, 23, 42, 0.16);
+      flex-shrink: 0;
+    }
+
+    .summary-value {
+      font-size: 1.9rem;
+      line-height: 1;
+      font-weight: 900;
+      color: #111827;
+      margin-top: 0.75rem;
+    }
+
+    .summary-label {
+      font-size: 0.78rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: #6b7280;
+    }
+
+    .summary-caption {
+      font-size: 0.76rem;
+      font-weight: 600;
+      color: #94a3b8;
+      margin-top: 0.35rem;
+    }
+    
+    .rank-badge {
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 900;
+      font-size: 1.1rem;
+    }
+    
+    .rank-1 { background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%); color: white; box-shadow: 0 4px 15px rgba(251, 191, 36, 0.4); }
+    .rank-2 { background: linear-gradient(135deg, #94a3b8 0%, #64748b 100%); color: white; box-shadow: 0 4px 15px rgba(148, 163, 184, 0.4); }
+    .rank-3 { background: linear-gradient(135deg, #fb923c 0%, #ea580c 100%); color: white; box-shadow: 0 4px 15px rgba(251, 146, 60, 0.4); }
+    .rank-other { background: linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 100%); color: #475569; }
+    
+    .progress-bar {
+      height: 8px;
+      background: #e2e8f0;
+      border-radius: 10px;
+      overflow: hidden;
+      position: relative;
+    }
+    
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #3b82f6 0%, #1e40af 100%);
+      border-radius: 10px;
+      transition: width 1s ease-out;
+    }
+
+    /* =====  AUTOCOMPLETE DROPDOWN STYLES ===== */
+    .autocomplete-container {
+      position: relative;
+    }
+
+    .autocomplete-dropdown {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      background: white;
+      border: 2px solid #3b82f6;
+      border-top: none;
+      border-radius: 0 0 0.75rem 0.75rem;
+      max-height: 300px;
+      overflow-y: auto;
+      z-index: 1000;
+      box-shadow: 0 10px 40px rgba(30, 64, 175, 0.15);
+      display: none;
+    }
+
+    .autocomplete-dropdown.show {
+      display: block;
+      animation: slideDown 0.3s ease-out;
+    }
+
+    .autocomplete-item {
+      padding: 12px 16px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-weight: 600;
+      color: #374151;
+      border-bottom: 1px solid #f1f5f9;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .autocomplete-item:hover {
+      background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+      color: #1e40af;
+    }
+
+    .autocomplete-item:last-child {
+      border-bottom: none;
+    }
+
+    .autocomplete-item mark {
+      background: #fef3c7;
+      color: #92400e;
+      font-weight: 800;
+      padding: 2px 4px;
+      border-radius: 4px;
+    }
+
+    .autocomplete-item input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      cursor: pointer;
+      accent-color: #3b82f6;
+    }
+
+    .autocomplete-no-results {
+      padding: 16px;
+      text-align: center;
+      color: #9ca3af;
+      font-weight: 600;
+    }
+
+    .autocomplete-dropdown::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    .autocomplete-dropdown::-webkit-scrollbar-track {
+      background: #f1f5f9;
+    }
+
+    .autocomplete-dropdown::-webkit-scrollbar-thumb {
+      background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
+      border-radius: 10px;
+    }
+
+    /* SELECTED ITEMS TAGS */
+    .selected-items-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 8px;
+      min-height: 32px;
+    }
+
+    .selected-item-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+      color: white;
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 0.875rem;
+      font-weight: 700;
+      box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+      animation: fadeIn 0.3s ease-out;
+    }
+
+    .selected-item-tag button {
+      background: none;
+      border: none;
+      color: white;
+      cursor: pointer;
+      padding: 0;
+      width: 16px;
+      height: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      transition: all 0.2s ease;
+    }
+
+    .selected-item-tag button:hover {
+      background: rgba(255, 255, 255, 0.2);
+      transform: scale(1.1);
+    }
+  </style>
+</head>
+
+<body class="gradient-mesh min-h-screen">
+
+  <!-- HEADER -->
+  <div class="admin-gradient text-white shadow-2xl animate-slideDown sticky top-0 z-50">
+    <div class="max-w-full px-6 py-6">
+      <div class="flex flex-col md:flex-row justify-between items-center gap-4">
+        <div class="flex items-center gap-4">
+          <div class="w-20 h-20 rounded-2xl overflow-hidden shadow-xl">
+            <img src="logo-alpro.png" alt="Alpro Apotek Pharmacy" class="w-full h-full object-cover">
+          </div>
+          <div>
+            <h1 class="text-2xl md:text-3xl font-black tracking-tight">Admin Control Panel</h1>
+            <p class="text-sm text-white/90 font-semibold flex items-center gap-2 mt-1">
+              <i class="fas fa-clipboard-list"></i>
+              <span>Alpro Apotek Pharmacy - Request Management</span>
+            </p>
+          </div>
+        </div>
+        <button 
+          onclick="logout()" 
+          class="flex items-center gap-2 bg-red-500/90 hover:bg-red-600 px-6 py-3 rounded-xl transition-all backdrop-blur-xl border border-white/30 font-bold shadow-lg"
+        >
+          <i class="fas fa-sign-out-alt"></i>
+          <span>Logout</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB NAVIGATION -->
+  <div class="max-w-full px-6 pt-6">
+    <div class="inline-flex gap-3 animate-fadeIn">
+      <button 
+        class="tab-button active px-8 py-4 rounded-xl font-bold flex items-center gap-3 shadow-lg"
+        onclick="switchTab('dashboard')"
+        id="tabDashboard"
+      >
+        <i class="fas fa-chart-line text-xl"></i>
+        <span>Dashboard</span>
+      </button>
+      <button 
+        class="tab-button px-8 py-4 rounded-xl font-bold flex items-center gap-3 shadow-lg"
+        onclick="switchTab('admin')"
+        id="tabAdmin"
+      >
+        <i class="fas fa-tasks text-xl"></i>
+        <span>Admin Panel</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- DASHBOARD TAB CONTENT -->
+  <div id="contentDashboard" class="tab-content active max-w-full p-4 md:p-6 animate-fadeIn">
+    
+    <!-- DASHBOARD HEADER -->
+    <div class="card-premium p-6 mb-6">
+      <div class="flex items-center gap-3">
+        <div class="w-12 h-12 bg-gradient-to-br from-purple-500 to-purple-700 rounded-xl flex items-center justify-center shadow-lg">
+          <i class="fas fa-chart-bar text-white text-2xl"></i>
+        </div>
+        <div>
+          <h2 class="text-2xl font-black text-gray-800">Dashboard Analytics</h2>
+          <p class="text-sm text-gray-600 font-semibold mt-1">Top 10 Performance Metrics</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- DASHBOARD SUMMARY -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-4 mb-6">
+      <div class="summary-card p-5" style="--summary-accent: linear-gradient(90deg, #3b82f6 0%, #1d4ed8 100%);">
+        <div class="flex items-start justify-between gap-3">
+          <div>
+            <p class="summary-label">Ticket Open</p>
+            <div id="summaryOpenTicket" class="summary-value">...</div>
+            <p class="summary-caption">Status ticket sedang open</p>
+          </div>
+          <div class="summary-icon bg-gradient-to-br from-blue-500 to-blue-700">
+            <i class="fas fa-door-open text-xl"></i>
+          </div>
+        </div>
+      </div>
+
+      <div class="summary-card p-5" style="--summary-accent: linear-gradient(90deg, #10b981 0%, #059669 100%);">
+        <div class="flex items-start justify-between gap-3">
+          <div>
+            <p class="summary-label">Ticket Close</p>
+            <div id="summaryCloseTicket" class="summary-value">...</div>
+            <p class="summary-caption">Status ticket sudah close</p>
+          </div>
+          <div class="summary-icon bg-gradient-to-br from-green-500 to-green-700">
+            <i class="fas fa-lock text-xl"></i>
+          </div>
+        </div>
+      </div>
+
+      <div class="summary-card p-5" style="--summary-accent: linear-gradient(90deg, #f59e0b 0%, #d97706 100%);">
+        <div class="flex items-start justify-between gap-3">
+          <div>
+            <p class="summary-label">Pending Procurement</p>
+            <div id="summaryPendingProcurement" class="summary-value">...</div>
+            <p class="summary-caption">Status procurement masih pending</p>
+          </div>
+          <div class="summary-icon bg-gradient-to-br from-amber-500 to-orange-600">
+            <i class="fas fa-hourglass-half text-xl"></i>
+          </div>
+        </div>
+      </div>
+
+      <div class="summary-card p-5" style="--summary-accent: linear-gradient(90deg, #8b5cf6 0%, #7c3aed 100%);">
+        <div class="flex items-start justify-between gap-3">
+          <div>
+            <p class="summary-label">Pending Store</p>
+            <div id="summaryPendingStore" class="summary-value">...</div>
+            <p class="summary-caption">Menunggu tindak lanjut store</p>
+          </div>
+          <div class="summary-icon bg-gradient-to-br from-purple-500 to-purple-700">
+            <i class="fas fa-store text-xl"></i>
+          </div>
+        </div>
+      </div>
+
+      <div class="summary-card p-5" style="--summary-accent: linear-gradient(90deg, #06b6d4 0%, #0891b2 100%);">
+        <div class="flex items-start justify-between gap-3">
+          <div>
+            <p class="summary-label">Total Ticket</p>
+            <div id="summaryTotalTicket" class="summary-value">...</div>
+            <p class="summary-caption">Total seluruh ticket</p>
+          </div>
+          <div class="summary-icon bg-gradient-to-br from-cyan-500 to-cyan-700">
+            <i class="fas fa-ticket-alt text-xl"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TOP 10 CARDS -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      
+      <!-- TOP 10 STORES -->
+      <div class="top10-card p-6">
+        <div class="flex items-center gap-3 mb-6 pb-4 border-b-2 border-gray-100">
+          <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-700 rounded-xl flex items-center justify-center shadow-lg">
+            <i class="fas fa-store text-white"></i>
+          </div>
+          <div>
+            <h3 class="text-lg font-black text-gray-800">Top 10 Stores</h3>
+            <p class="text-xs text-gray-500 font-semibold">Terbanyak Ticketing</p>
+          </div>
+        </div>
+        <div id="topStoreList" class="space-y-3">
+          <div class="animate-pulse-loading text-center py-8">
+            <i class="fas fa-spinner fa-spin text-3xl text-blue-500 mb-2"></i>
+            <p class="text-sm font-bold text-gray-600">Memuat data...</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- TOP 10 CATEGORIES -->
+      <div class="top10-card p-6">
+        <div class="flex items-center gap-3 mb-6 pb-4 border-b-2 border-gray-100">
+          <div class="w-10 h-10 bg-gradient-to-br from-purple-500 to-purple-700 rounded-xl flex items-center justify-center shadow-lg">
+            <i class="fas fa-tags text-white"></i>
+          </div>
+          <div>
+            <h3 class="text-lg font-black text-gray-800">Top 10 Categories</h3>
+            <p class="text-xs text-gray-500 font-semibold">Kategori Terpopuler</p>
+          </div>
+        </div>
+        <div id="topCategoryList" class="space-y-3">
+          <div class="animate-pulse-loading text-center py-8">
+            <i class="fas fa-spinner fa-spin text-3xl text-purple-500 mb-2"></i>
+            <p class="text-sm font-bold text-gray-600">Memuat data...</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- TOP 10 ITEMS -->
+      <div class="top10-card p-6">
+        <div class="flex items-center gap-3 mb-6 pb-4 border-b-2 border-gray-100">
+          <div class="w-10 h-10 bg-gradient-to-br from-green-500 to-green-700 rounded-xl flex items-center justify-center shadow-lg">
+            <i class="fas fa-box text-white"></i>
+          </div>
+          <div>
+            <h3 class="text-lg font-black text-gray-800">Top 10 Items</h3>
+            <p class="text-xs text-gray-500 font-semibold">Item Paling Sering Di-Request</p>
+          </div>
+        </div>
+        <div id="topItemList" class="space-y-3">
+          <div class="animate-pulse-loading text-center py-8">
+            <i class="fas fa-spinner fa-spin text-3xl text-green-500 mb-2"></i>
+            <p class="text-sm font-bold text-gray-600">Memuat data...</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ADMIN PANEL TAB CONTENT -->
+  <div id="contentAdmin" class="tab-content max-w-full p-4 md:p-6 animate-fadeIn">
+    
+    <!-- FILTERS & ACTIONS -->
+    <div class="card-premium p-6 mb-6">
+      <div class="flex items-center gap-3 mb-6 pb-4 border-b-2 border-gray-100">
+        <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-700 rounded-xl flex items-center justify-center shadow-lg">
+          <i class="fas fa-filter text-white"></i>
+        </div>
+        <h2 class="text-xl font-black text-gray-800">Filter & Export Data</h2>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+        <!-- CATEGORY FILTER -->
+        <div class="md:col-span-2">
+          <label class="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
+            <i class="fas fa-tags text-purple-500"></i>
+            <span>Officers</span>
+          </label>
+          <select 
+            id="filterCategory" 
+            class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl transition-all font-semibold text-gray-700"
+          >
+            <option value="">All Officers</option>
+          </select>
+        </div>
+
+        <!-- PROCUREMENT STATUS FILTER -->
+        <div class="md:col-span-2">
+          <label class="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
+            <i class="fas fa-list-check text-green-500"></i>
+            <span>Status Procurement</span>
+          </label>
+          <select 
+            id="filterStatus" 
+            class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl transition-all font-semibold text-gray-700"
+          >
+            <option value="">All Status</option>
+            <option value="Pending">Pending</option>
+            <option value="Approved">Approved</option>
+            <option value="Rejected">Rejected</option>
+          </select>
+        </div>
+
+        <!-- TICKET STATUS FILTER -->
+        <div class="md:col-span-2">
+          <label class="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
+            <i class="fas fa-door-open text-cyan-500"></i>
+            <span>Ticket Status</span>
+          </label>
+          <select 
+            id="filterTicketStatus" 
+            class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl transition-all font-semibold text-gray-700"
+          >
+            <option value="">All Ticket</option>
+            <option value="Pending">Pending</option>
+            <option value="Open">Open</option>
+            <option value="Close">Close</option>
+          </select>
+        </div>
+
+        <!-- STORE FILTER WITH AUTOCOMPLETE & MULTISELECT -->
+        <div class="md:col-span-3 autocomplete-container">
+          <label class="block text-sm font-bold text-gray-700 mb-2 flex items-center justify-between">
+            <span class="flex items-center gap-2">
+              <i class="fas fa-store text-blue-500"></i>
+              <span>Search Store</span>
+            </span>
+            <button 
+              onclick="clearSelectedStores()" 
+              class="text-xs text-red-500 hover:text-red-700 font-semibold"
+              id="clearStoreSelectionBtn"
+              style="display: none;"
+            >
+              <i class="fas fa-times-circle mr-1"></i>Clear All
+            </button>
+          </label>
+          <input 
+            type="text"
+            id="filterStoreName" 
+            placeholder="Ketik atau pilih store..."
+            autocomplete="off"
+            class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl transition-all font-semibold text-gray-700"
+          />
+          <div id="autocompleteStoreDropdown" class="autocomplete-dropdown"></div>
+        </div>
+
+        <!-- ITEM NAME FILTER WITH AUTOCOMPLETE & MULTISELECT -->
+        <div class="md:col-span-3 autocomplete-container">
+          <label class="block text-sm font-bold text-gray-700 mb-2 flex items-center justify-between">
+            <span class="flex items-center gap-2">
+              <i class="fas fa-box text-orange-500"></i>
+              <span>Search Item Name</span>
+            </span>
+            <button 
+              onclick="clearSelectedItems()" 
+              class="text-xs text-red-500 hover:text-red-700 font-semibold"
+              id="clearSelectionBtn"
+              style="display: none;"
+            >
+              <i class="fas fa-times-circle mr-1"></i>Clear All
+            </button>
+          </label>
+          <input 
+            type="text"
+            id="filterItemName" 
+            placeholder="Ketik atau pilih item..."
+            autocomplete="off"
+            class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl transition-all font-semibold text-gray-700"
+          />
+          <div id="autocompleteDropdown" class="autocomplete-dropdown"></div>
+        </div>
+      </div>
+
+      <!-- Row Kedua untuk Button Tampilkan Data -->
+      <div class="grid grid-cols-1 md:grid-cols-12 gap-4 mt-4">
+        <div class="md:col-span-3">
+          <button 
+            onclick="loadItems()" 
+            class="w-full bg-gradient-to-r from-blue-500 to-blue-700 text-white px-6 py-3 rounded-xl font-bold shadow-lg hover:shadow-2xl flex items-center justify-center gap-2"
+          >
+            <i class="fas fa-search"></i>
+            <span>Show Data</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- SELECTED STORES TAGS SECTION -->
+      <div id="selectedStoresContainer" class="selected-items-container mt-2"></div>
+      
+      <!-- SELECTED ITEMS TAGS SECTION (MOVED OUTSIDE GRID) -->
+      <div id="selectedItemsContainer" class="selected-items-container mt-2"></div>
+
+      <!-- Row Kedua untuk Export Button -->
+      <div class="grid grid-cols-1 md:grid-cols-12 gap-4 mt-4">
+        <div class="md:col-span-3 md:col-start-10">
+          <button 
+            onclick="exportExcel()" 
+            class="w-full bg-gradient-to-r from-green-500 to-green-700 text-white px-6 py-3 rounded-xl font-bold shadow-lg hover:shadow-2xl flex items-center justify-center gap-2"
+          >
+            <i class="fas fa-file-excel"></i>
+            <span>Export XLSX</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- ACTIVE FILTERS DISPLAY -->
+      <div id="activeFilters" class="mt-4 flex flex-wrap gap-2"></div>
+    </div>
+
+    <!-- DATA TABLE -->
+    <div class="card-premium p-6">
+      <div class="flex justify-between items-center mb-6 pb-4 border-b-2 border-gray-100">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
+            <i class="fas fa-table text-white"></i>
+          </div>
+          <div>
+            <h2 class="text-xl font-black text-gray-800">Daftar Request Per Item</h2>
+            <p class="text-sm text-gray-500 font-semibold" id="dataCount">Loading...</p>
+          </div>
+        </div>
+        
+        <!-- PAGINATION INFO -->
+        <div class="text-sm font-bold text-gray-600" id="pageInfo">
+          <i class="fas fa-file-alt mr-2"></i>Halaman 1
+        </div>
+      </div>
+
+      <!-- TABLE -->
+      <div class="table-container border-2 border-gray-200 mb-6">
+        <table class="w-full text-sm min-w-[1850px]">
+          <thead class="bg-gradient-to-r from-blue-600 to-indigo-700 text-white sticky top-0">
+            <tr>
+              <th class="px-4 py-4 text-left font-black whitespace-nowrap">
+                <i class="fas fa-hashtag mr-2"></i>Ticket ID
+              </th>
+              <th class="px-4 py-4 text-left font-black whitespace-nowrap">
+                <i class="fas fa-store mr-2"></i>Store
+              </th>
+              <th class="px-4 py-4 text-left font-black whitespace-nowrap">
+                <i class="fas fa-barcode mr-2"></i>Item ID
+              </th>
+              <th class="px-4 py-4 text-left font-black whitespace-nowrap">
+                <i class="fas fa-box mr-2"></i>Item Name
+              </th>
+              <th class="px-4 py-4 text-center font-black whitespace-nowrap">
+                <i class="fas fa-boxes mr-2"></i>Qty
+              </th>
+              <th class="px-4 py-4 text-left font-black whitespace-nowrap">
+                <i class="fas fa-comment mr-2"></i>Remarks
+              </th>
+              <th class="px-4 py-4 text-left font-black whitespace-nowrap">
+                <i class="fas fa-tags mr-2"></i>Officer
+              </th>
+              <th class="px-4 py-4 text-center font-black whitespace-nowrap">
+                <i class="fas fa-list-check mr-2"></i>Procurement Status
+              </th>
+              <th class="px-4 py-4 text-left font-black whitespace-nowrap">
+                <i class="fas fa-reply mr-2"></i>Procurement Feedback
+              </th>
+              <th class="px-4 py-4 text-center font-black whitespace-nowrap">
+                <i class="fas fa-door-open mr-2"></i>Ticket Status
+              </th>
+              <th class="px-4 py-4 text-left font-black whitespace-nowrap">
+                <i class="fas fa-store-alt mr-2"></i>Store Update
+              </th>
+              <th class="px-4 py-4 text-left font-black whitespace-nowrap">
+                <i class="fas fa-calendar mr-2"></i>Timeline
+              </th>
+              <th class="px-4 py-4 text-center font-black whitespace-nowrap">
+                <i class="fas fa-cog mr-2"></i>Action
+              </th>
+            </tr>
+          </thead>
+          <tbody id="itemList"></tbody>
+        </table>
+      </div>
+
+      <!-- PAGINATION CONTROLS -->
+      <div class="flex flex-col md:flex-row justify-between items-center gap-4">
+        <div class="flex items-center gap-2">
+          <button 
+            onclick="goToPage(currentPage - 1)" 
+            id="prevBtn"
+            class="pagination-btn px-5 py-3 border-2 border-gray-300 rounded-xl font-bold text-gray-700 disabled:opacity-40"
+          >
+            <i class="fas fa-chevron-left mr-2"></i>Previous
+          </button>
+          
+          <div id="pageButtons" class="flex gap-2"></div>
+          
+          <button 
+            onclick="goToPage(currentPage + 1)" 
+            id="nextBtn"
+            class="pagination-btn px-5 py-3 border-2 border-gray-300 rounded-xl font-bold text-gray-700 disabled:opacity-40"
+          >
+            Next<i class="fas fa-chevron-right ml-2"></i>
+          </button>
+        </div>
+        
+        <div class="text-sm font-bold text-gray-600">
+          <span id="itemRange">0-0</span> dari <span id="totalItems">0</span> items
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    const BASE_URL = "https://script.google.com/macros/s/AKfycbxdqLBsqNPBDPE1AmS-4o7kkvIgqfViKCwDnng50WKImHsjNIP3plLxkQz7KBrZiMtaeg/exec";
+    
+    let currentCategory = "";
+    let currentStatus = "";
+    let currentTicketStatus = "";
+    let selectedItemNames = [];
+    let selectedStoreNames = [];
+    let allData = [];
+    let currentPage = 1;
+    const itemsPerPage = 20;
+    let totalPages = 1;
+    
+    let allItemNames = [];
+    let allStoreNames = [];
+
+    // TAB SWITCHING FUNCTION
+    function switchTab(tabName) {
+      document.querySelectorAll('.tab-content').forEach(content => {
+        content.classList.remove('active');
+      });
+      
+      document.querySelectorAll('.tab-button').forEach(btn => {
+        btn.classList.remove('active');
+      });
+      
+      document.getElementById('content' + tabName.charAt(0).toUpperCase() + tabName.slice(1)).classList.add('active');
+      document.getElementById('tab' + tabName.charAt(0).toUpperCase() + tabName.slice(1)).classList.add('active');
+      
+      if (tabName === 'dashboard') {
+        loadDashboardData();
+      } else if (tabName === 'admin') {
+        if (allData.length === 0) {
+          loadItems();
+        }
+      }
+    }
+
+    // LOAD DASHBOARD DATA
+    async function loadDashboardData() {
+      loadDashboardSummary();
+
+      try {
+        const response = await fetch(`${BASE_URL}?action=top10dashboard`);
+        const data = await response.json();
+        
+        renderTop10(data.top_store, 'topStoreList', 'blue');
+        renderTop10(data.top_category, 'topCategoryList', 'purple');
+        renderTop10(data.top_item, 'topItemList', 'green');
+        
+      } catch (error) {
+        console.error('Failed to load dashboard data:', error);
+        
+        ['topStoreList', 'topCategoryList', 'topItemList'].forEach(id => {
+          document.getElementById(id).innerHTML = `
+            <div class="text-center py-8">
+              <i class="fas fa-exclamation-triangle text-3xl text-red-500 mb-2"></i>
+              <p class="text-sm font-bold text-gray-600">Gagal memuat data</p>
+            </div>
+          `;
+        });
+      }
+    }
+
+    async function loadDashboardSummary() {
+      setDashboardSummaryLoading();
+
+      try {
+        const response = await fetch(`${BASE_URL}?action=getRequests`);
+        const data = await response.json();
+
+        if (!Array.isArray(data)) {
+          throw new Error('Invalid data format received from server');
+        }
+
+        const summary = calculateDashboardSummary(data);
+        renderDashboardSummary(summary);
+      } catch (error) {
+        console.error('Failed to load dashboard summary:', error);
+        renderDashboardSummaryError();
+      }
+    }
+
+    function calculateDashboardSummary(items) {
+      const summary = {
+        open: 0,
+        close: 0,
+        pendingProcurement: 0,
+        pendingStore: 0,
+        total: Array.isArray(items) ? items.length : 0
+      };
+
+      (Array.isArray(items) ? items : []).forEach(item => {
+        const ticketStatus = String(item?.ticket_status || 'Pending').trim().toLowerCase();
+        const procurementStatus = String(item?.status || 'Pending').trim().toLowerCase();
+
+        if (ticketStatus === 'open') summary.open += 1;
+        if (ticketStatus === 'close') summary.close += 1;
+        if (ticketStatus === 'pending') summary.pendingStore += 1;
+        if (procurementStatus === 'pending') summary.pendingProcurement += 1;
+      });
+
+      return summary;
+    }
+
+    function renderDashboardSummary(summary) {
+      setDashboardSummaryValue('summaryOpenTicket', summary.open);
+      setDashboardSummaryValue('summaryCloseTicket', summary.close);
+      setDashboardSummaryValue('summaryPendingProcurement', summary.pendingProcurement);
+      setDashboardSummaryValue('summaryPendingStore', summary.pendingStore);
+      setDashboardSummaryValue('summaryTotalTicket', summary.total);
+    }
+
+    function renderDashboardSummaryError() {
+      ['summaryOpenTicket', 'summaryCloseTicket', 'summaryPendingProcurement', 'summaryPendingStore', 'summaryTotalTicket']
+        .forEach(id => setDashboardSummaryValue(id, '-'));
+    }
+
+    function setDashboardSummaryLoading() {
+      ['summaryOpenTicket', 'summaryCloseTicket', 'summaryPendingProcurement', 'summaryPendingStore', 'summaryTotalTicket']
+        .forEach(id => setDashboardSummaryValue(id, '...'));
+    }
+
+    function setDashboardSummaryValue(id, value) {
+      const element = document.getElementById(id);
+      if (element) {
+        const numericValue = typeof value === 'number' ? value.toLocaleString('id-ID') : value;
+        element.textContent = numericValue;
+      }
+    }
+
+    // RENDER TOP 10 LIST
+    function renderTop10(data, containerId, color) {
+      const container = document.getElementById(containerId);
+      
+      if (!data || data.length === 0) {
+        container.innerHTML = `
+          <div class="text-center py-8">
+            <i class="fas fa-inbox text-3xl text-gray-400 mb-2"></i>
+            <p class="text-sm font-bold text-gray-600">Tidak ada data</p>
+          </div>
+        `;
+        return;
+      }
+      
+      const maxCount = Math.max(...data.map(item => item.count));
+      
+      let html = '';
+      data.forEach((item, index) => {
+        const rank = index + 1;
+        const rankClass = 
+          rank === 1 ? 'rank-1' :
+          rank === 2 ? 'rank-2' :
+          rank === 3 ? 'rank-3' : 'rank-other';
+        
+        const percentage = (item.count / maxCount) * 100;
+        
+        html += `
+          <div class="flex items-center gap-3 p-3 rounded-xl bg-gray-50 hover:bg-gray-100 transition-all">
+            <div class="rank-badge ${rankClass}">
+              ${rank}
+            </div>
+            <div class="flex-1 min-w-0">
+              <div class="flex justify-between items-center mb-2">
+                <p class="font-bold text-gray-800 truncate pr-2">${item.name}</p>
+                <span class="px-3 py-1 bg-gradient-to-r from-${color}-500 to-${color}-600 text-white rounded-full text-xs font-black whitespace-nowrap">
+                  ${item.count}
+                </span>
+              </div>
+              <div class="progress-bar">
+                <div class="progress-fill" style="width: ${percentage}%"></div>
+              </div>
+            </div>
+          </div>
+        `;
+      });
+      
+      container.innerHTML = html;
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    function pad2(value) {
+      return String(value).padStart(2, '0');
+    }
+
+    function formatDateTimeDisplay(value) {
+      if (value === null || value === undefined || value === '') return '';
+
+      const str = String(value).trim();
+      if (!str) return '';
+
+      const buildOutput = (day, month, year, hour, minute, second, hasTime) => {
+        const datePart = `${pad2(day)}/${pad2(month)}/${String(year).padStart(4, '0')}`;
+        return hasTime ? `${datePart} ${pad2(hour)}:${pad2(minute)}:${pad2(second)}` : datePart;
+      };
+
+      let m = str.match(/^(\d{4})-(\d{1,2})-(\d{1,2})(?:[ T](\d{1,2}):(\d{2})(?::(\d{2}))?)?/);
+      if (m) {
+        return buildOutput(m[3], m[2], m[1], m[4] || 0, m[5] || 0, m[6] || 0, !!m[4]);
+      }
+
+      m = str.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})(?:\s+(\d{1,2}):(\d{2})(?::(\d{2}))?)?$/);
+      if (m) {
+        const sourceMonth = Number(m[1]);
+        const sourceDay = Number(m[2]);
+        const sourceYear = Number(m[3]);
+        return buildOutput(sourceDay, sourceMonth, sourceYear, m[4] || 0, m[5] || 0, m[6] || 0, !!m[4]);
+      }
+
+      return str;
+    }
+
+    function getTicketStatusBadge(status) {
+      const normalized = String(status || 'Pending').trim();
+      if (normalized === 'Close') {
+        return `<span class="ticket-badge close"><i class="fas fa-lock"></i>CLOSE</span>`;
+      }
+      if (normalized === 'Open') {
+        return `<span class="ticket-badge open"><i class="fas fa-door-open"></i>OPEN</span>`;
+      }
+      return `<span class="ticket-badge pending"><i class="fas fa-clock"></i>PENDING</span>`;
+    }
+
+    function getInfoChip(label, value, icon, muted = false) {
+      const safeValue = value ? escapeHtml(value) : '-';
+      return `<span class="info-chip ${muted ? 'muted' : ''}"><i class="fas ${icon}"></i>${label}: ${safeValue}</span>`;
+    }
+
+    // Load Categories
+    async function loadCategories() {
+      try {
+        const r = await fetch(`${BASE_URL}?action=getCategories`);
+        const data = await r.json();
+        const select = document.getElementById("filterCategory");
+        
+        data.forEach(cat => {
+          select.innerHTML += `<option value="${cat}">${cat}</option>`;
+        });
+      } catch (e) {
+        console.error("Failed to load categories", e);
+      }
+    }
+
+    async function loadItems() {
+      const filterCategory = document.getElementById("filterCategory").value;
+      const filterStatus = document.getElementById("filterStatus").value;
+      const filterTicketStatus = document.getElementById("filterTicketStatus").value;
+      
+      currentCategory = filterCategory;
+      currentStatus = filterStatus;
+      currentTicketStatus = filterTicketStatus;
+      
+      const tbody = document.getElementById("itemList");
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="13" class="px-4 py-12 text-center">
+            <div class="animate-pulse-loading">
+              <i class="fas fa-spinner fa-spin text-4xl text-blue-500 mb-3"></i>
+              <p class="font-bold text-gray-600">Memuat data...</p>
+            </div>
+          </td>
+        </tr>
+      `;
+      
+      try {
+        const query = new URLSearchParams({
+          action: 'getRequests',
+          filter_category: filterCategory,
+          filter_status: filterStatus,
+          filter_ticket_status: filterTicketStatus
+        });
+
+        const r = await fetch(`${BASE_URL}?${query.toString()}`);
+        
+        let fetchedData = await r.json();
+        
+        if (!Array.isArray(fetchedData)) {
+          console.error("Invalid response format:", fetchedData);
+          throw new Error("Invalid data format received from server");
+        }
+        
+        populateItemNameList(fetchedData);
+        populateStoreNameList(fetchedData);
+        
+        if (selectedStoreNames.length > 0) {
+          fetchedData = fetchedData.filter(item => 
+            selectedStoreNames.some(selected => 
+              item.store_name && item.store_name.toLowerCase().includes(selected.toLowerCase())
+            )
+          );
+        }
+        
+        if (selectedItemNames.length > 0) {
+          fetchedData = fetchedData.filter(item => 
+            selectedItemNames.some(selected => 
+              item.item_name && item.item_name.toLowerCase().includes(selected.toLowerCase())
+            )
+          );
+        }
+        
+        allData = fetchedData;
+        currentPage = 1;
+        totalPages = Math.ceil(allData.length / itemsPerPage);
+        
+        updateActiveFilters();
+        renderPage();
+        updatePagination();
+        
+        console.log(`✅ Data loaded successfully: ${allData.length} items`);
+        
+      } catch (e) {
+        console.error("Failed to load items", e);
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="13" class="px-4 py-12 text-center">
+              <i class="fas fa-exclamation-triangle text-4xl text-red-500 mb-3"></i>
+              <p class="font-bold text-gray-600">Gagal memuat data. Silakan coba lagi.</p>
+              <p class="text-sm text-gray-500 mt-2">${e.message}</p>
+            </td>
+          </tr>
+        `;
+      }
+    }
+
+    function populateItemNameList(data) {
+      const uniqueItems = [...new Set(
+        data.map(item => item.item_name).filter(name => name && name.trim() !== '')
+      )].sort();
+      
+      allItemNames = uniqueItems;
+    }
+
+    function populateStoreNameList(data) {
+      const uniqueStores = [...new Set(
+        data.map(item => item.store_name).filter(name => name && name.trim() !== '')
+      )].sort();
+      
+      allStoreNames = uniqueStores;
+    }
+
+    function showAutocomplete(query) {
+      const dropdown = document.getElementById('autocompleteDropdown');
+      
+      if (!query || query.length < 2) {
+        dropdown.classList.remove('show');
+        return;
+      }
+      
+      const filtered = allItemNames.filter(name => 
+        name.toLowerCase().includes(query.toLowerCase())
+      );
+      
+      if (filtered.length === 0) {
+        dropdown.innerHTML = '<div class="autocomplete-no-results">Tidak ada hasil ditemukan</div>';
+        dropdown.classList.add('show');
+        return;
+      }
+      
+      let html = '';
+      filtered.slice(0, 10).forEach(itemName => {
+        const escapedQuery = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const regex = new RegExp(`(${escapedQuery})`, 'gi');
+        const highlighted = itemName.replace(regex, '<mark>$1</mark>');
+        const isChecked = selectedItemNames.includes(itemName);
+        const escapedName = itemName.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+        
+        html += `
+          <div class="autocomplete-item" onclick="toggleItemSelection('${escapedName}', event)">
+            <input 
+              type="checkbox" 
+              ${isChecked ? 'checked' : ''}
+              onclick="event.stopPropagation(); toggleItemSelection('${escapedName}', event)"
+            />
+            <span>${highlighted}</span>
+          </div>
+        `;
+      });
+      
+      dropdown.innerHTML = html;
+      dropdown.classList.add('show');
+    }
+
+    function toggleItemSelection(itemName, event) {
+      event.stopPropagation();
+      
+      const index = selectedItemNames.indexOf(itemName);
+      
+      if (index > -1) {
+        selectedItemNames.splice(index, 1);
+      } else {
+        selectedItemNames.push(itemName);
+      }
+      
+      renderSelectedItems();
+      updateClearButton();
+      
+      const query = document.getElementById('filterItemName').value.trim();
+      showAutocomplete(query);
+    }
+
+    function renderSelectedItems() {
+      const container = document.getElementById('selectedItemsContainer');
+      
+      if (selectedItemNames.length === 0) {
+        container.innerHTML = '';
+        return;
+      }
+      
+      let html = '';
+      selectedItemNames.forEach(itemName => {
+        const escapedName = itemName.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+        html += `
+          <div class="selected-item-tag">
+            <span>${itemName}</span>
+            <button onclick="removeSelectedItem('${escapedName}')">
+              <i class="fas fa-times"></i>
+            </button>
+          </div>
+        `;
+      });
+      
+      container.innerHTML = html;
+    }
+
+    function removeSelectedItem(itemName) {
+      const index = selectedItemNames.indexOf(itemName);
+      if (index > -1) {
+        selectedItemNames.splice(index, 1);
+      }
+      
+      renderSelectedItems();
+      updateClearButton();
+      
+      const query = document.getElementById('filterItemName').value.trim();
+      if (query) {
+        showAutocomplete(query);
+      }
+    }
+
+    function clearSelectedItems() {
+      selectedItemNames = [];
+      document.getElementById('filterItemName').value = '';
+      renderSelectedItems();
+      updateClearButton();
+      document.getElementById('autocompleteDropdown').classList.remove('show');
+    }
+
+    function updateClearButton() {
+      const clearBtn = document.getElementById('clearSelectionBtn');
+      if (selectedItemNames.length > 0) {
+        clearBtn.style.display = 'inline';
+      } else {
+        clearBtn.style.display = 'none';
+      }
+    }
+
+    function showStoreAutocomplete(query) {
+      const dropdown = document.getElementById('autocompleteStoreDropdown');
+      
+      if (!query || query.length < 2) {
+        dropdown.classList.remove('show');
+        return;
+      }
+      
+      const filtered = allStoreNames.filter(name => 
+        name.toLowerCase().includes(query.toLowerCase())
+      );
+      
+      if (filtered.length === 0) {
+        dropdown.innerHTML = '<div class="autocomplete-no-results">Tidak ada hasil ditemukan</div>';
+        dropdown.classList.add('show');
+        return;
+      }
+      
+      let html = '';
+      filtered.slice(0, 10).forEach(storeName => {
+        const escapedQuery = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const regex = new RegExp(`(${escapedQuery})`, 'gi');
+        const highlighted = storeName.replace(regex, '<mark>$1</mark>');
+        const isChecked = selectedStoreNames.includes(storeName);
+        const escapedName = storeName.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+        
+        html += `
+          <div class="autocomplete-item" onclick="toggleStoreSelection('${escapedName}', event)">
+            <input 
+              type="checkbox" 
+              ${isChecked ? 'checked' : ''}
+              onclick="event.stopPropagation(); toggleStoreSelection('${escapedName}', event)"
+            />
+            <span>${highlighted}</span>
+          </div>
+        `;
+      });
+      
+      dropdown.innerHTML = html;
+      dropdown.classList.add('show');
+    }
+
+    function toggleStoreSelection(storeName, event) {
+      event.stopPropagation();
+      
+      const index = selectedStoreNames.indexOf(storeName);
+      
+      if (index > -1) {
+        selectedStoreNames.splice(index, 1);
+      } else {
+        selectedStoreNames.push(storeName);
+      }
+      
+      renderSelectedStores();
+      updateClearStoreButton();
+      
+      const query = document.getElementById('filterStoreName').value.trim();
+      showStoreAutocomplete(query);
+    }
+
+    function renderSelectedStores() {
+      const container = document.getElementById('selectedStoresContainer');
+      
+      if (selectedStoreNames.length === 0) {
+        container.innerHTML = '';
+        return;
+      }
+      
+      let html = '';
+      selectedStoreNames.forEach(storeName => {
+        const escapedName = storeName.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+        html += `
+          <div class="selected-item-tag">
+            <span>${storeName}</span>
+            <button onclick="removeSelectedStore('${escapedName}')">
+              <i class="fas fa-times"></i>
+            </button>
+          </div>
+        `;
+      });
+      
+      container.innerHTML = html;
+    }
+
+    function removeSelectedStore(storeName) {
+      const index = selectedStoreNames.indexOf(storeName);
+      if (index > -1) {
+        selectedStoreNames.splice(index, 1);
+      }
+      
+      renderSelectedStores();
+      updateClearStoreButton();
+      
+      const query = document.getElementById('filterStoreName').value.trim();
+      if (query) {
+        showStoreAutocomplete(query);
+      }
+    }
+
+    function clearSelectedStores() {
+      selectedStoreNames = [];
+      document.getElementById('filterStoreName').value = '';
+      renderSelectedStores();
+      updateClearStoreButton();
+      document.getElementById('autocompleteStoreDropdown').classList.remove('show');
+    }
+
+    function updateClearStoreButton() {
+      const clearBtn = document.getElementById('clearStoreSelectionBtn');
+      if (selectedStoreNames.length > 0) {
+        clearBtn.style.display = 'inline';
+      } else {
+        clearBtn.style.display = 'none';
+      }
+    }
+
+    document.getElementById('filterItemName').addEventListener('input', function(e) {
+      const query = e.target.value.trim();
+      showAutocomplete(query);
+    });
+
+    document.getElementById('filterStoreName').addEventListener('input', function(e) {
+      const query = e.target.value.trim();
+      showStoreAutocomplete(query);
+    });
+
+    document.addEventListener('click', function(e) {
+      const containers = document.querySelectorAll('.autocomplete-container');
+      let clickedInside = false;
+      
+      containers.forEach(container => {
+        if (container.contains(e.target)) {
+          clickedInside = true;
+        }
+      });
+      
+      if (!clickedInside) {
+        document.getElementById('autocompleteDropdown').classList.remove('show');
+        document.getElementById('autocompleteStoreDropdown').classList.remove('show');
+      }
+    });
+
+    document.getElementById('filterItemName').addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') {
+        document.getElementById('autocompleteDropdown').classList.remove('show');
+      }
+    });
+
+    document.getElementById('filterStoreName').addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') {
+        document.getElementById('autocompleteStoreDropdown').classList.remove('show');
+      }
+    });
+
+    function renderPage() {
+      const tbody = document.getElementById("itemList");
+      const start = (currentPage - 1) * itemsPerPage;
+      const end = start + itemsPerPage;
+      const pageData = allData.slice(start, end);
+      
+      tbody.innerHTML = "";
+      
+      if (pageData.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="13" class="px-4 py-12 text-center">
+              <i class="fas fa-inbox text-4xl text-gray-400 mb-3"></i>
+              <p class="font-bold text-gray-600">Tidak ada data yang ditampilkan</p>
+              <p class="text-sm text-gray-500 mt-1">Coba ubah filter Anda atau klik "Tampilkan Data"</p>
+            </td>
+          </tr>
+        `;
+        document.getElementById("dataCount").textContent = "0 items ditemukan";
+        document.getElementById("itemRange").textContent = "0-0";
+        document.getElementById("totalItems").textContent = "0";
+        return;
+      }
+      
+      const rows = [];
+      
+      pageData.forEach((it, pageIndex) => {
+        if (!it || !it.ticket_id || !it.item_id) {
+          console.warn("Invalid item data:", it);
+          return;
+        }
+        
+        const globalIndex = start + pageIndex;
+        const procurementStatus = it.status || 'Pending';
+        const ticketStatus = it.ticket_status || 'Pending';
+        const storeFeedback = it.store_feedback || '';
+        const salesStatus = it.sales_status || '';
+        const rowColor =
+          procurementStatus === "Approved" ? "row-approved" :
+          procurementStatus === "Rejected" ? "row-rejected" :
+          "row-pending";
+
+        const timelineHtml = `
+          <div class="info-stack min-w-[180px]">
+            <div>
+              <p class="font-bold text-gray-700">Created</p>
+              <p class="meta-text">${escapeHtml(formatDateTimeDisplay(it.created_at) || '-')}</p>
+            </div>
+            <div>
+              <p class="font-bold text-gray-700">Processed</p>
+              <p class="meta-text">${escapeHtml(formatDateTimeDisplay(it.processed_at) || '-')}</p>
+            </div>
+            <div>
+              <p class="font-bold text-gray-700">Store Feedback</p>
+              <p class="meta-text">${escapeHtml(formatDateTimeDisplay(it.store_feedback_at) || '-')}</p>
+            </div>
+          </div>
+        `;
+
+        const storeUpdateHtml = `
+          <div class="info-stack">
+            ${getInfoChip('Feedback', storeFeedback || '-', 'comment-dots', !storeFeedback)}
+            ${getInfoChip('Sales', salesStatus || '-', 'chart-line', !salesStatus)}
+            <span class="meta-text"><i class="fas fa-rotate mr-1"></i>Updated: ${escapeHtml(formatDateTimeDisplay(it.updated_at) || '-')}</span>
+          </div>
+        `;
+
+        rows.push(`
+          <tr class="border-b hover:shadow-lg transition-all ${rowColor}">
+            <td class="px-4 py-4 font-bold text-gray-800 whitespace-nowrap">#${escapeHtml(it.ticket_id || 'N/A')}</td>
+            <td class="px-4 py-4 font-semibold text-gray-700 whitespace-nowrap">
+              <i class="fas fa-store-alt text-blue-500 mr-2"></i>${escapeHtml(it.store_name || 'N/A')}
+            </td>
+            <td class="px-4 py-4 font-mono text-gray-600 whitespace-nowrap">${escapeHtml(it.item_id || 'N/A')}</td>
+            <td class="px-4 py-4 font-semibold text-gray-800 whitespace-nowrap">${escapeHtml(it.item_name || 'N/A')}</td>
+            <td class="px-4 py-4 text-center whitespace-nowrap">
+              <span class="inline-block px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white font-black rounded-lg shadow-md">
+                ${escapeHtml(it.qty || 0)}
+              </span>
+            </td>
+            <td class="px-4 py-4 text-gray-600 font-medium max-w-xs">
+              <div class="max-w-[220px] break-words whitespace-normal">${escapeHtml(it.remarks || '-')}</div>
+            </td>
+            <td class="px-4 py-4 whitespace-nowrap">
+              <span class="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-xs font-bold">
+                ${escapeHtml(it.category || 'N/A')}
+              </span>
+            </td>
+            <td class="px-4 py-4 text-center whitespace-nowrap">
+              <select 
+                id="status_${globalIndex}" 
+                class="px-3 py-2 border-2 border-gray-300 rounded-lg font-bold text-sm transition-all bg-white"
+              >
+                <option ${procurementStatus === "Pending" ? "selected" : ""}>Pending</option>
+                <option ${procurementStatus === "Approved" ? "selected" : ""}>Approved</option>
+                <option ${procurementStatus === "Rejected" ? "selected" : ""}>Rejected</option>
+              </select>
+            </td>
+            <td class="px-4 py-4 whitespace-nowrap">
+              <input 
+                id="fb_${globalIndex}" 
+                class="px-3 py-2 border-2 border-gray-300 rounded-lg w-full min-w-[240px] font-medium transition-all bg-white" 
+                value="${escapeHtml(it.feedback || '')}"
+                placeholder="Tulis feedback procurement..."
+              />
+            </td>
+            <td class="px-4 py-4 text-center whitespace-nowrap">
+              ${getTicketStatusBadge(ticketStatus)}
+            </td>
+            <td class="px-4 py-4 align-top">
+              ${storeUpdateHtml}
+            </td>
+            <td class="px-4 py-4 align-top whitespace-nowrap">
+              ${timelineHtml}
+            </td>
+            <td class="px-4 py-4 text-center whitespace-nowrap">
+              <button 
+                class="px-4 py-2 bg-gradient-to-r from-green-500 to-green-600 text-white font-bold rounded-lg shadow-lg hover:shadow-xl transition-all"
+                onclick="updateItem(${globalIndex}, this)"
+              >
+                <i class="fas fa-save mr-2"></i>Save
+              </button>
+            </td>
+          </tr>
+        `);
+      });
+      
+      tbody.innerHTML = rows.join('');
+      
+      document.getElementById("dataCount").textContent = `${allData.length} items ditemukan`;
+      document.getElementById("itemRange").textContent = `${start + 1}-${Math.min(end, allData.length)}`;
+      document.getElementById("totalItems").textContent = allData.length;
+      document.getElementById("pageInfo").innerHTML = `<i class="fas fa-file-alt mr-2"></i>Halaman ${currentPage} dari ${totalPages || 1}`;
+    }
+
+    function updateActiveFilters() {
+      const container = document.getElementById("activeFilters");
+      container.innerHTML = "";
+      
+      if (currentCategory) {
+        container.innerHTML += `
+          <span class="filter-badge px-4 py-2 bg-purple-100 text-purple-700 rounded-full text-sm font-bold flex items-center gap-2 w-fit">
+            <i class="fas fa-tag"></i>
+            Kategori: ${currentCategory}
+            <button onclick="clearFilter('category')" class="hover:text-purple-900">
+              <i class="fas fa-times"></i>
+            </button>
+          </span>
+        `;
+      }
+      
+      if (currentStatus) {
+        container.innerHTML += `
+          <span class="filter-badge px-4 py-2 bg-blue-100 text-blue-700 rounded-full text-sm font-bold flex items-center gap-2 w-fit">
+            <i class="fas fa-info-circle"></i>
+            Status: ${currentStatus}
+            <button onclick="clearFilter('status')" class="hover:text-blue-900">
+              <i class="fas fa-times"></i>
+            </button>
+          </span>
+        `;
+      }
+
+      if (currentTicketStatus) {
+        container.innerHTML += `
+          <span class="filter-badge px-4 py-2 bg-cyan-100 text-cyan-700 rounded-full text-sm font-bold flex items-center gap-2 w-fit">
+            <i class="fas fa-door-open"></i>
+            Ticket: ${currentTicketStatus}
+            <button onclick="clearFilter('ticketstatus')" class="hover:text-cyan-900">
+              <i class="fas fa-times"></i>
+            </button>
+          </span>
+        `;
+      }
+      
+      if (selectedStoreNames.length > 0) {
+        container.innerHTML += `
+          <span class="filter-badge px-4 py-2 bg-blue-100 text-blue-700 rounded-full text-sm font-bold flex items-center gap-2 w-fit">
+            <i class="fas fa-store"></i>
+            ${selectedStoreNames.length} Store(s) dipilih
+            <button onclick="clearFilter('store')" class="hover:text-blue-900">
+              <i class="fas fa-times"></i>
+            </button>
+          </span>
+        `;
+      }
+      
+      if (selectedItemNames.length > 0) {
+        container.innerHTML += `
+          <span class="filter-badge px-4 py-2 bg-orange-100 text-orange-700 rounded-full text-sm font-bold flex items-center gap-2 w-fit">
+            <i class="fas fa-box"></i>
+            ${selectedItemNames.length} Item(s) dipilih
+            <button onclick="clearFilter('itemname')" class="hover:text-orange-900">
+              <i class="fas fa-times"></i>
+            </button>
+          </span>
+        `;
+      }
+    }
+
+    function updatePagination() {
+      const pageButtons = document.getElementById("pageButtons");
+      const prevBtn = document.getElementById("prevBtn");
+      const nextBtn = document.getElementById("nextBtn");
+      
+      prevBtn.disabled = currentPage === 1;
+      nextBtn.disabled = currentPage === totalPages || totalPages === 0;
+      
+      pageButtons.innerHTML = "";
+      
+      let startPage = Math.max(1, currentPage - 2);
+      let endPage = Math.min(totalPages, startPage + 4);
+      
+      if (endPage - startPage < 4) {
+        startPage = Math.max(1, endPage - 4);
+      }
+      
+      for (let i = startPage; i <= endPage; i++) {
+        const btn = document.createElement("button");
+        btn.className = `pagination-btn px-4 py-3 border-2 rounded-xl font-bold ${
+          i === currentPage 
+            ? 'active' 
+            : 'border-gray-300 text-gray-700 bg-white'
+        }`;
+        btn.textContent = i;
+        btn.onclick = () => goToPage(i);
+        pageButtons.appendChild(btn);
+      }
+    }
+
+    function goToPage(page) {
+      if (page < 1 || page > totalPages) return;
+      currentPage = page;
+      renderPage();
+      updatePagination();
+      
+      document.querySelector('.table-container').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    function clearFilter(type) {
+      if (type === 'category') {
+        document.getElementById("filterCategory").value = "";
+        currentCategory = "";
+      } else if (type === 'status') {
+        document.getElementById("filterStatus").value = "";
+        currentStatus = "";
+      } else if (type === 'ticketstatus') {
+        document.getElementById("filterTicketStatus").value = "";
+        currentTicketStatus = "";
+      } else if (type === 'store') {
+        clearSelectedStores();
+      } else if (type === 'itemname') {
+        clearSelectedItems();
+      }
+      loadItems();
+    }
+
+    // 🔥 UPDATED VERSION: SUPPORT PROCUREMENT + OPEN/CLOSE FLOW 🔥
+    async function updateItem(dataIndex, btnElement) {
+      const statusSelect = document.getElementById(`status_${dataIndex}`);
+      const feedbackInput = document.getElementById(`fb_${dataIndex}`);
+      
+      if (!statusSelect || !feedbackInput) {
+        console.error("❌ Element not found for index:", dataIndex);
+        alert('⚠️ Error: Element tidak ditemukan. Silakan refresh halaman.');
+        return;
+      }
+      
+      const item = allData[dataIndex];
+      if (!item) {
+        console.error('❌ Item not found at allData[' + dataIndex + ']!');
+        alert('⚠️ Error: Data tidak ditemukan. Silakan refresh halaman.');
+        return;
+      }
+      
+      const newStatus = statusSelect.value;
+      const newFeedback = feedbackInput.value.trim();
+      const formattedItemId = String(item.item_id).padStart(6, "0");
+
+      if (newStatus !== 'Pending' && !newFeedback) {
+        alert('⚠️ Feedback procurement wajib diisi jika status Approved atau Rejected.');
+        feedbackInput.focus();
+        return;
+      }
+      
+      const oldStatus = item.status;
+      const oldFeedback = item.feedback;
+      const oldTicketStatus = item.ticket_status;
+      
+      allData[dataIndex].status = newStatus;
+      allData[dataIndex].feedback = newFeedback;
+      allData[dataIndex].ticket_status = newStatus === 'Pending'
+        ? 'Pending'
+        : ((item.store_feedback || item.sales_status) ? 'Close' : 'Open');
+      
+      btnElement.disabled = true;
+      const originalHTML = btnElement.innerHTML;
+      btnElement.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Saving...';
+      
+      try {
+        const response = await fetch(`${BASE_URL}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: new URLSearchParams({
+            action: 'updateitemstatus',
+            ticket_id: item.ticket_id,
+            item_id: formattedItemId,
+            status: newStatus,
+            feedback: newFeedback
+          })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+          allData[dataIndex].ticket_status = result.ticket_status || allData[dataIndex].ticket_status;
+
+          btnElement.innerHTML = '<i class="fas fa-check mr-2"></i>Saved!';
+          btnElement.classList.remove('from-green-500', 'to-green-600');
+          btnElement.classList.add('from-emerald-500', 'to-emerald-600');
+
+          setTimeout(async () => {
+            btnElement.innerHTML = originalHTML;
+            btnElement.classList.remove('from-emerald-500', 'to-emerald-600');
+            btnElement.classList.add('from-green-500', 'to-green-600');
+            btnElement.disabled = false;
+            await loadItems();
+          }, 900);
+        } else {
+          throw new Error(result.message || 'Update failed');
+        }
+        
+      } catch (error) {
+        console.error('❌ Update failed:', error);
+        
+        allData[dataIndex].status = oldStatus;
+        allData[dataIndex].feedback = oldFeedback;
+        allData[dataIndex].ticket_status = oldTicketStatus;
+        
+        btnElement.innerHTML = '<i class="fas fa-exclamation-triangle mr-2"></i>Failed';
+        btnElement.classList.remove('from-green-500', 'to-green-600');
+        btnElement.classList.add('from-red-500', 'to-red-600');
+        
+        alert('❌ Gagal menyimpan perubahan!\n\n' + error.message + '\n\nSilakan coba lagi.');
+        
+        setTimeout(() => {
+          btnElement.innerHTML = originalHTML;
+          btnElement.classList.remove('from-red-500', 'to-red-600');
+          btnElement.classList.add('from-green-500', 'to-green-600');
+          btnElement.disabled = false;
+          renderPage();
+        }, 1800);
+      }
+    }
+
+    function exportExcel() {
+      if (allData.length === 0) {
+        alert('⚠️ Tidak ada data untuk di-export!\n\nSilakan:\n1. Klik tombol "Tampilkan Data" terlebih dahulu\n2. Pastikan ada data yang sesuai dengan filter Anda');
+        return;
+      }
+      
+      try {
+        const notification = document.createElement('div');
+        notification.id = 'exportNotification';
+        notification.innerHTML = `
+          <div style="position: fixed; top: 20px; right: 20px; background: linear-gradient(135deg, #10b981, #059669); color: white; padding: 16px 24px; border-radius: 12px; box-shadow: 0 10px 30px rgba(16, 185, 129, 0.4); z-index: 9999; font-weight: bold; animation: slideDown 0.5s ease-out;">
+            <i class="fas fa-spinner fa-spin mr-2"></i> Sedang mengexport ${allData.length} items...
+          </div>
+        `;
+        document.body.appendChild(notification);
+        
+        const exportData = allData.map(item => ({
+          'Ticket ID': item.ticket_id || 'N/A',
+          'Store': item.store_name || 'N/A',
+          'Item ID': item.item_id || 'N/A',
+          'Item Name': item.item_name || 'N/A',
+          'Qty': item.qty || 0,
+          'Remarks': item.remarks || '-',
+          'Category': item.category || 'N/A',
+          'Procurement Status': item.status || 'Pending',
+          'Procurement Feedback': item.feedback || '-',
+          'Ticket Status': item.ticket_status || 'Pending',
+          'Store Feedback': item.store_feedback || '-',
+          'Sales Status': item.sales_status || '-',
+          'Created At': formatDateTimeDisplay(item.created_at) || 'N/A',
+          'Processed At': formatDateTimeDisplay(item.processed_at) || '-',
+          'Store Feedback At': formatDateTimeDisplay(item.store_feedback_at) || '-',
+          'Updated At': formatDateTimeDisplay(item.updated_at) || '-'
+        }));
+        
+        const wb = XLSX.utils.book_new();
+        const ws = XLSX.utils.json_to_sheet(exportData);
+        
+        const colWidths = [
+          { wch: 15 },
+          { wch: 35 },
+          { wch: 15 },
+          { wch: 50 },
+          { wch: 8 },
+          { wch: 30 },
+          { wch: 24 },
+          { wch: 18 },
+          { wch: 34 },
+          { wch: 14 },
+          { wch: 34 },
+          { wch: 18 },
+          { wch: 20 },
+          { wch: 20 },
+          { wch: 20 },
+          { wch: 20 }
+        ];
+        ws['!cols'] = colWidths;
+        
+        XLSX.utils.book_append_sheet(wb, ws, 'Request Data');
+        
+        const now = new Date();
+        const timestamp = now.toISOString().slice(0, 19).replace(/:/g, '-').replace('T', '_');
+        const categoryText = currentCategory || 'All';
+        const statusText = currentStatus || 'All';
+        const ticketStatusText = currentTicketStatus || 'AllTicket';
+        const filename = `Export_${categoryText}_${statusText}_${ticketStatusText}_${timestamp}.xlsx`;
+        
+        XLSX.writeFile(wb, filename);
+        
+        notification.innerHTML = `
+          <div style="position: fixed; top: 20px; right: 20px; background: linear-gradient(135deg, #10b981, #059669); color: white; padding: 16px 24px; border-radius: 12px; box-shadow: 0 10px 30px rgba(16, 185, 129, 0.4); z-index: 9999; font-weight: bold; animation: slideDown 0.5s ease-out;">
+            <i class="fas fa-check-circle mr-2"></i> ✅ Export berhasil! ${allData.length} items telah di-export.
+          </div>
+        `;
+        
+        setTimeout(() => {
+          if (document.getElementById('exportNotification')) {
+            document.body.removeChild(notification);
+          }
+        }, 3000);
+        
+        console.log('✅ Export Excel successful:', {
+          totalRows: allData.length,
+          filename: filename,
+          category: currentCategory || 'All',
+          status: currentStatus || 'All',
+          ticketStatus: currentTicketStatus || 'All',
+          selectedItems: selectedItemNames.length
+        });
+        
+      } catch (error) {
+        console.error('❌ Error during Excel export:', error);
+        
+        const errorNotif = document.createElement('div');
+        errorNotif.innerHTML = `
+          <div style="position: fixed; top: 20px; right: 20px; background: linear-gradient(135deg, #ef4444, #dc2626); color: white; padding: 16px 24px; border-radius: 12px; box-shadow: 0 10px 30px rgba(239, 68, 68, 0.4); z-index: 9999; font-weight: bold;">
+            <i class="fas fa-exclamation-triangle mr-2"></i> Gagal mengexport data!
+          </div>
+        `;
+        document.body.appendChild(errorNotif);
+        
+        setTimeout(() => {
+          document.body.removeChild(errorNotif);
+        }, 3000);
+        
+        alert('❌ Gagal mengexport data. Silakan coba lagi.\n\nError: ' + error.message);
+      }
+    }
+
+    function logout() {
+      window.location.href = 'login.html';
+    }
+
+    window.onload = function() {
+      console.log('🚀 Initializing Admin Panel - FIXED VERSION...');
+      console.log('🔧 Version: 2.0 - Status Update Bug Fixed');
+      
+      loadCategories();
+      loadDashboardData();
+      
+      console.log('✅ Admin Panel ready. Click "Tampilkan Data" to load items.');
+      console.log('🔥 CHANGELOG:');
+      console.log('   - Fixed: item_id formatting dengan padStart(6, "0")');
+      console.log('   - Fixed: Status tidak persist setelah refresh');
+      console.log('   - Added: Better error handling & rollback mechanism');
+      console.log('   - Added: Detailed console logging untuk debugging');
+    };
+  </script>
+
+<script defer src="https://static.cloudflareinsights.com/beacon.min.js/v8c78df7c7c0f484497ecbca7046644da1771523124516" integrity="sha512-8DS7rgIrAmghBFwoOTujcf6D9rXvH8xm8JQ1Ja01h9QX8EzXldiszufYa4IFfKdLUKTTrnSFXLDkUEOTrZQ8Qg==" data-cf-beacon='{"version":"2024.11.0","token":"4edd5f8ec12a48cfa682ab8261b80a79","server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
+<script defer src="https://static.cloudflareinsights.com/beacon.min.js/v8c78df7c7c0f484497ecbca7046644da1771523124516" integrity="sha512-8DS7rgIrAmghBFwoOTujcf6D9rXvH8xm8JQ1Ja01h9QX8EzXldiszufYa4IFfKdLUKTTrnSFXLDkUEOTrZQ8Qg==" data-cf-beacon='{"version":"2024.11.0","token":"4edd5f8ec12a48cfa682ab8261b80a79","server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
+<script defer src="https://static.cloudflareinsights.com/beacon.min.js/v8c78df7c7c0f484497ecbca7046644da1771523124516" integrity="sha512-8DS7rgIrAmghBFwoOTujcf6D9rXvH8xm8JQ1Ja01h9QX8EzXldiszufYa4IFfKdLUKTTrnSFXLDkUEOTrZQ8Qg==" data-cf-beacon='{"version":"2024.11.0","token":"4edd5f8ec12a48cfa682ab8261b80a79","server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
+<script defer src="https://static.cloudflareinsights.com/beacon.min.js/v8c78df7c7c0f484497ecbca7046644da1771523124516" integrity="sha512-8DS7rgIrAmghBFwoOTujcf6D9rXvH8xm8JQ1Ja01h9QX8EzXldiszufYa4IFfKdLUKTTrnSFXLDkUEOTrZQ8Qg==" data-cf-beacon='{"version":"2024.11.0","token":"4edd5f8ec12a48cfa682ab8261b80a79","server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
+</body>
+</html>

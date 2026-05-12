@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Login | Procurement Portal</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+  
+  * { font-family: 'Inter', sans-serif; }
+  
+  @keyframes slideUp { 
+    from { opacity: 0; transform: translateY(30px); } 
+    to { opacity: 1; transform: translateY(0); } 
+  }
+  @keyframes float { 
+    0%, 100% { transform: translateY(0px); } 
+    50% { transform: translateY(-20px); } 
+  }
+  @keyframes glow { 
+    0%, 100% { box-shadow: 0 0 30px rgba(59, 130, 246, 0.3); } 
+    50% { box-shadow: 0 0 60px rgba(59, 130, 246, 0.6); } 
+  }
+  
+  .animate-slideUp { animation: slideUp 0.8s ease-out; }
+  .animate-float { animation: float 3s ease-in-out infinite; }
+  .animate-glow { animation: glow 2s ease-in-out infinite; }
+  
+  .retail-gradient { 
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 50%, #1e40af 100%);
+  }
+  
+  .card-gradient { 
+    background: linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(249,250,251,0.95) 100%);
+    backdrop-filter: blur(20px);
+  }
+  
+  .procurement-bg {
+    background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 30%, #f97316 70%, #ea580c 100%);
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .procurement-bg::before {
+    content: '';
+    position: absolute;
+    width: 500px;
+    height: 500px;
+    background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+    top: -200px;
+    right: -200px;
+    animation: float 6s ease-in-out infinite;
+  }
+  
+  .procurement-bg::after {
+    content: '';
+    position: absolute;
+    width: 300px;
+    height: 300px;
+    background: radial-gradient(circle, rgba(255,255,255,0.08) 0%, transparent 70%);
+    bottom: -100px;
+    left: -100px;
+    animation: float 8s ease-in-out infinite reverse;
+  }
+  
+  input:focus {
+    transform: scale(1.02);
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+  }
+  
+  button:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 20px 40px rgba(59, 130, 246, 0.3);
+  }
+  
+  .hidden-switch { display: none; }
+  
+  .icon-box {
+    background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+    box-shadow: 0 10px 40px rgba(249, 115, 22, 0.3);
+  }
+  
+  .divider {
+    height: 1px;
+    background: linear-gradient(90deg, transparent 0%, #d1d5db 50%, transparent 100%);
+    margin: 2rem 0;
+  }
+</style>
+</head>
+
+<body class="procurement-bg flex items-center justify-center min-h-screen p-4">
+
+<div class="card-gradient shadow-2xl rounded-3xl p-10 w-full max-w-md text-center animate-slideUp border border-white/30 relative z-10">
+
+  <!-- LOGO & BRANDING -->
+  <div class="mb-8">
+    <div class="mx-auto w-32 h-32 flex items-center justify-center animate-float mb-4">
+      <img src="logo-alpro.png" alt="Alpro Apotek Pharmacy" class="w-full h-full object-contain">
+    </div>
+    <h1 class="text-3xl font-bold text-gray-800 mb-2">Procurement Portal</h1>
+    <p class="text-sm text-gray-500 font-medium">Alpro Apotek Pharmacy - Store Request System</p>
+  </div>
+
+  <!-- LOGIN FORM WRAPPER -->
+  <div id="loginWrapper">
+    <div class="text-left mb-6">
+      <h2 class="text-2xl font-bold text-gray-800 mb-1 flex items-center gap-2">
+        <i class="fas fa-sign-in-alt text-blue-500"></i>
+        Masuk ke Sistem
+      </h2>
+      <p class="text-sm text-gray-500 ml-7">Silakan login untuk melanjutkan</p>
+    </div>
+
+    <div class="space-y-4 mb-6">
+      <div class="relative">
+        <div class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
+          <i class="fas fa-store"></i>
+        </div>
+        <input 
+          id="store_code" 
+          type="text" 
+          placeholder="Kode Store" 
+          class="w-full pl-12 pr-4 py-3.5 border-2 border-gray-200 rounded-xl focus:ring-0 focus:border-blue-400 transition-all text-gray-700 font-medium"
+        >
+      </div>
+      
+      <div class="relative">
+        <div class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
+          <i class="fas fa-lock"></i>
+        </div>
+        <input 
+          id="password" 
+          type="password" 
+          placeholder="Password" 
+          class="w-full pl-12 pr-4 py-3.5 border-2 border-gray-200 rounded-xl focus:ring-0 focus:border-blue-400 transition-all text-gray-700 font-medium"
+        >
+      </div>
+    </div>
+
+    <button 
+      onclick="login()" 
+      class="w-full retail-gradient text-white py-4 rounded-xl transition-all font-bold text-lg flex items-center justify-center gap-3 shadow-lg hover:shadow-2xl mb-4"
+    >
+      <i class="fas fa-arrow-right"></i>
+      <span>Masuk Sekarang</span>
+    </button>
+
+    <p id="msg" class="text-sm text-red-500 font-semibold min-h-[20px]"></p>
+
+    <div class="divider"></div>
+
+    <button 
+      onclick="switchToReset()" 
+      class="text-sm text-blue-600 hover:text-blue-800 font-semibold hover:underline flex items-center justify-center gap-2 mx-auto"
+    >
+      <i class="fas fa-question-circle"></i>
+      <span>Lupa Password?</span>
+    </button>
+  </div>
+
+  <!-- RESET PASSWORD WRAPPER -->
+  <div id="resetWrapper" class="hidden-switch">
+    <div class="text-left mb-6">
+      <h3 class="text-2xl font-bold text-gray-800 mb-1 flex items-center gap-2">
+        <i class="fas fa-key text-amber-500"></i>
+        Reset Password
+      </h3>
+      <p class="text-sm text-gray-500 ml-7">Buat password baru untuk akun Anda</p>
+    </div>
+
+    <div class="space-y-4 mb-6">
+      <div class="relative">
+        <div class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
+          <i class="fas fa-store"></i>
+        </div>
+        <input 
+          id="reset_store" 
+          type="text" 
+          placeholder="Kode Store" 
+          class="w-full pl-12 pr-4 py-3.5 border-2 border-gray-200 rounded-xl focus:ring-0 focus:border-amber-400 transition-all text-gray-700 font-medium"
+        >
+      </div>
+      
+      <div class="relative">
+        <div class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
+          <i class="fas fa-lock"></i>
+        </div>
+        <input 
+          id="new_pass" 
+          type="password" 
+          placeholder="Password Baru" 
+          class="w-full pl-12 pr-4 py-3.5 border-2 border-gray-200 rounded-xl focus:ring-0 focus:border-amber-400 transition-all text-gray-700 font-medium"
+        >
+      </div>
+    </div>
+
+    <button 
+      onclick="resetPassword()" 
+      class="w-full bg-gradient-to-r from-amber-500 to-orange-600 text-white py-4 rounded-xl transition-all font-bold text-lg flex items-center justify-center gap-3 shadow-lg hover:shadow-2xl mb-4"
+    >
+      <i class="fas fa-sync-alt"></i>
+      <span>Reset Password</span>
+    </button>
+
+    <p id="resetMsg" class="text-sm text-gray-600 font-semibold min-h-[20px]"></p>
+
+    <div class="divider"></div>
+
+    <button 
+      onclick="switchToLogin()" 
+      class="text-sm text-blue-600 hover:text-blue-800 font-semibold hover:underline flex items-center justify-center gap-2 mx-auto"
+    >
+      <i class="fas fa-arrow-left"></i>
+      <span>Kembali ke Login</span>
+    </button>
+  </div>
+
+  <!-- FOOTER INFO -->
+  <div class="mt-8 pt-6 border-t border-gray-200">
+    <p class="text-xs text-gray-400 flex items-center justify-center gap-2">
+      <i class="fas fa-shield-alt"></i>
+      <span>Sistem Aman & Terenkripsi</span>
+    </p>
+  </div>
+
+</div>
+
+<script>
+const BASE_URL = "https://script.google.com/macros/s/AKfycbyjLzz3v0vyiV4dI5lWz5erQ69U5DzjtsU4fwbg9UF6CsSWB_7KPuqKRGDjUUvVzHgZMg/exec";
+
+async function login() {
+  const store_code = document.getElementById("store_code").value.trim();
+  const password = document.getElementById("password").value.trim();
+  const msg = document.getElementById("msg");
+  
+  if (!store_code || !password) {
+    msg.innerText = "⚠ Isi kode store dan password!";
+    msg.className = "text-sm text-red-500 font-semibold min-h-[20px]";
+    return;
+  }
+  
+  try {
+    msg.innerText = "⏳ Sedang memproses...";
+    msg.className = "text-sm text-blue-500 font-semibold min-h-[20px]";
+    
+    const res = await fetch(`${BASE_URL}?action=login&store_code=${store_code}&password=${password}`);
+    const data = await res.json();
+    
+    if (data.success) {
+      localStorage.setItem("store_code", data.store_code);
+      localStorage.setItem("store_name", data.store_name);
+      localStorage.setItem("role", data.role);
+      
+      msg.innerText = "✓ Login berhasil! Mengalihkan...";
+      msg.className = "text-sm text-green-500 font-semibold min-h-[20px]";
+      
+      setTimeout(() => {
+        if (data.role.toLowerCase() === "admin") {
+          window.location.href = "admin.html";
+        } else {
+          window.location.href = "request.html";
+        }
+      }, 500);
+    } else {
+      msg.innerText = "✗ " + data.message;
+      msg.className = "text-sm text-red-500 font-semibold min-h-[20px]";
+    }
+  } catch (err) {
+    msg.innerText = "✗ Terjadi kesalahan koneksi.";
+    msg.className = "text-sm text-red-500 font-semibold min-h-[20px]";
+  }
+}
+
+document.addEventListener("keypress", e => {
+  if (e.key === "Enter") login();
+});
+
+function switchToReset() {
+  document.getElementById("loginWrapper").classList.add("hidden-switch");
+  document.getElementById("resetWrapper").classList.remove("hidden-switch");
+  document.getElementById("msg").innerText = "";
+}
+
+function switchToLogin() {
+  document.getElementById("resetWrapper").classList.add("hidden-switch");
+  document.getElementById("loginWrapper").classList.remove("hidden-switch");
+  document.getElementById("resetMsg").innerText = "";
+}
+
+async function resetPassword() {
+  const store_code = document.getElementById("reset_store").value.trim();
+  const new_pass = document.getElementById("new_pass").value.trim();
+  const msg = document.getElementById("resetMsg");
+  
+  if (!store_code || !new_pass) {
+    msg.innerText = "⚠ Isi kode store dan password baru!";
+    msg.className = "text-sm text-red-500 font-semibold min-h-[20px]";
+    return;
+  }
+  
+  try {
+    msg.innerText = "⏳ Memproses reset password...";
+    msg.className = "text-sm text-blue-500 font-semibold min-h-[20px]";
+    
+    const res = await fetch(BASE_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({
+        action: "resetPassword",
+        store_code,
+        new_pass
+      })
+    });
+    
+    const data = await res.json();
+    
+    if (data.success) {
+      msg.innerText = "✓ " + data.message;
+      msg.className = "text-sm text-green-500 font-semibold min-h-[20px]";
+    } else {
+      msg.innerText = "✗ " + data.message;
+      msg.className = "text-sm text-red-500 font-semibold min-h-[20px]";
+    }
+  } catch (e) {
+    msg.innerText = "✗ Terjadi kesalahan koneksi.";
+    msg.className = "text-sm text-red-500 font-semibold min-h-[20px]";
+  }
+}
+</script>
+
+</body>
+</html>
